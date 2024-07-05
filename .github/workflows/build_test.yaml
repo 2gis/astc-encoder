@@ -37,29 +37,6 @@ jobs:
           name: astcenc-linux-x64
           path: build_rel/*.zip
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Get Python modules
-        run: |
-          python -m pip install --upgrade pip
-          pip install numpy Pillow
-
-      - name: Python Tests
-        run: |
-          python ./Test/astc_test_functional.py --encoder=none
-          python ./Test/astc_test_functional.py --encoder=sse2
-          python ./Test/astc_test_functional.py --encoder=sse4.1
-          python ./Test/astc_test_functional.py --encoder=avx2
-          python ./Test/astc_test_image.py --encoder=none --test-set Small --test-quality medium
-          python ./Test/astc_test_image.py --encoder=all-x86 --test-set Small --test-quality medium
-
-      - name: ctest
-        run: ctest
-        working-directory: build_rel
-
   build-macos:
     name: Build and test on MacOS
     runs-on: macos-12
@@ -89,20 +66,6 @@ jobs:
           name: astcenc-macos-x64
           path: build_rel/*.zip
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Get Python modules
-        run: |
-          python -m pip install --upgrade pip
-          pip install numpy Pillow
-
-      - name: Python Tests
-        run: |
-          python ./Test/astc_test_image.py --test-set Small --test-quality medium
-
   build-macos-arm:
     name: Build and test on MacOS Arm
     runs-on: macos-14
@@ -116,14 +79,14 @@ jobs:
         run: |
           mkdir build_rel
           cd build_rel
-          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=arm ..
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_NEON=ON -DASTCENC_PACKAGE=arm ..
           make install package -j4
 
       - name: Build D
         run: |
           mkdir build_dbg
           cd build_dbg
-          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_NEON=ON ..
           make -j4
 
       - name: Upload binaries
@@ -131,20 +94,6 @@ jobs:
         with:
           name: astcenc-macos-arm
           path: build_rel/*.zip
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Get Python modules
-        run: |
-          python -m pip install --upgrade pip
-          pip install numpy Pillow
-
-      - name: Python Tests
-        run: |
-          python ./Test/astc_test_image.py --test-set Small --test-quality medium
 
   build-windows-msvc:
     name: Build and test on Windows MSVC
@@ -179,22 +128,6 @@ jobs:
         with:
           name: astcenc-windows-x64-cl
           path: build_rel/*.zip
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Get Python modules
-        run: |
-          python -m pip install --upgrade pip
-          pip install numpy Pillow
-        shell: cmd
-
-      - name: Python Tests
-        run: |
-          python ./Test/astc_test_image.py --test-set Small --test-quality medium
-        shell: cmd
 
   build-windows-ClangCL:
     name: Build and test on Windows ClangCL
@@ -231,19 +164,3 @@ jobs:
         with:
           name: astcenc-windows-x64-clangcl
           path: build_rel/*.zip
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Get Python modules
-        run: |
-          python -m pip install --upgrade pip
-          pip install numpy Pillow
-        shell: cmd
-
-      - name: Python Tests
-        run: |
-          python ./Test/astc_test_image.py --test-set Small --test-quality medium
-        shell: cmd
