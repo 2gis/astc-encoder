@@ -103,6 +103,49 @@ jobs:
         run: |
           python ./Test/astc_test_image.py --test-set Small --test-quality medium
 
+  build-macos-arm:
+    name: Build and test on MacOS Arm
+    runs-on: macos-14
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Build R
+        run: |
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_PACKAGE=arm ..
+          make install package -j4
+
+      - name: Build D
+        run: |
+          mkdir build_dbg
+          cd build_dbg
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_UNIVERSAL_BUILD=OFF -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
+          make -j4
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: astcenc-macos-arm
+          path: build_rel/*.zip
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Python Tests
+        run: |
+          python ./Test/astc_test_image.py --test-set Small --test-quality medium
+
   build-windows-msvc:
     name: Build and test on Windows MSVC
     runs-on: windows-2022
